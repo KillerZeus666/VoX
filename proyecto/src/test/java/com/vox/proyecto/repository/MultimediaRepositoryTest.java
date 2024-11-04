@@ -1,8 +1,6 @@
 package com.vox.proyecto.repository;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,8 +24,9 @@ public class MultimediaRepositoryTest {
 
     @BeforeEach
     public void setUp() {
-        publicacion = new Publicacion(); // Asegúrate de inicializar adecuadamente la publicación
-        publicacion.setIdPub(1L); // Establece un ID de publicación de prueba
+        // Inicializa y guarda la publicación
+        publicacion = new Publicacion();
+        publicacion.setIdPub(1L); // Establece un ID de prueba, asegurándote de que no esté en uso.
         publicacionRepository.save(publicacion);
     }
 
@@ -35,28 +34,29 @@ public class MultimediaRepositoryTest {
     public void testSaveMultimedia() {
         Multimedia multimedia = new Multimedia("http://example.com/video.mp4", "video", 1, publicacion);
         Multimedia savedMultimedia = multimediaRepository.save(multimedia);
-        
-        assertNotNull(savedMultimedia.getIdMul());
-        assertEquals("http://example.com/video.mp4", savedMultimedia.getUrl());
+
+        assertNotNull(savedMultimedia.getIdMul(), "El ID de multimedia guardado no debe ser nulo");
+        assertEquals("http://example.com/video.mp4", savedMultimedia.getUrl(), "Las URLs deben coincidir");
+        assertEquals(multimedia.getTipo(), savedMultimedia.getTipo(), "Los tipos de multimedia deben coincidir");
     }
 
     @Test
     public void testFindById() {
         Multimedia multimedia = new Multimedia("http://example.com/audio.mp3", "audio", 2, publicacion);
         Multimedia savedMultimedia = multimediaRepository.save(multimedia);
-        
+
         Optional<Multimedia> foundMultimedia = multimediaRepository.findById(savedMultimedia.getIdMul());
-        assertTrue(foundMultimedia.isPresent());
-        assertEquals(savedMultimedia.getUrl(), foundMultimedia.get().getUrl());
+        assertTrue(foundMultimedia.isPresent(), "La multimedia debería estar presente");
+        assertEquals(savedMultimedia.getUrl(), foundMultimedia.get().getUrl(), "Las URLs deben coincidir");
     }
 
     @Test
     public void testDeleteMultimedia() {
         Multimedia multimedia = new Multimedia("http://example.com/image.png", "image", 3, publicacion);
         Multimedia savedMultimedia = multimediaRepository.save(multimedia);
-        
+
         multimediaRepository.deleteById(savedMultimedia.getIdMul());
         Optional<Multimedia> foundMultimedia = multimediaRepository.findById(savedMultimedia.getIdMul());
-        assertTrue(foundMultimedia.isEmpty());
+        assertFalse(foundMultimedia.isPresent(), "La multimedia debería haber sido eliminada");
     }
 }
