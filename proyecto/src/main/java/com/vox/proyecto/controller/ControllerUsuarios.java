@@ -1,46 +1,33 @@
 package com.vox.proyecto.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import com.vox.proyecto.modelo.Usuario;
 import com.vox.proyecto.repository.UsuarioRepository;
 
-@Controller
+@RestController
+@RequestMapping("/usuarios")
 public class ControllerUsuarios {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
 
     // Método para registrar un nuevo usuario
-    public void registrarUsuario(String nombre, String username, String password, 
-    int edad, String carrera, String semestre, String biografia, String email) {
-        Usuario nuevoUsuario = new Usuario(nombre, username, password, edad, carrera, semestre, biografia, email);
+    @PostMapping("/registrar")
+    public ResponseEntity<String> registrarUsuario(@RequestBody Usuario nuevoUsuario) {
+        if (verificarUsuarioExistente(nuevoUsuario.getUsername(), nuevoUsuario.getEmail())) {
+            return ResponseEntity.badRequest().body("El nombre de usuario o correo electrónico ya están en uso.");
+        }
         usuarioRepository.save(nuevoUsuario);
-    }
-
-    // Método para autenticar un usuario
-    public boolean autenticarUsuario(String username, String password) {
-        Usuario usuario = usuarioRepository.findByUsername(username);
-        return usuario != null && usuario.getPassword().equals(password);
+        return ResponseEntity.ok("Usuario registrado exitosamente.");
     }
 
     // Método para verificar si un usuario ya existe
-    public boolean verificarUsuarioExistente(String username) {
-        return usuarioRepository.findByUsername(username) != null;
+    private boolean verificarUsuarioExistente(String username, String email) {
+        return usuarioRepository.findByUsername(username) != null || usuarioRepository.findByEmail(email) != null;
     }
 
-    // Método para borrar un usuario
-    public void borrarUsuario(Long id) {
-        usuarioRepository.deleteById(id);
-    }
-
-    // Método para editar el nombre de usuario
-    public void editarUsuario(String username, String nuevoUsername) {
-        Usuario usuario = usuarioRepository.findByUsername(username);
-        if (usuario != null) {
-            usuario.setUsername(nuevoUsername);
-            usuarioRepository.save(usuario);
-        }
-    }
+    // Otros métodos como autenticar, borrar y editar usuario...
 }
