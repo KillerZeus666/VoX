@@ -26,7 +26,7 @@ public class ControllerUsuarios {
 
     // Método para verificar si un usuario ya existe
     private boolean verificarUsuarioExistente(String username, String email) {
-        return usuarioRepository.findByUsername(username) != null || usuarioRepository.findByEmail(email) != null;
+        return usuarioRepository.findByUsername(username) != null;
     }
 
     // Otros métodos como autenticar, borrar y editar usuario...

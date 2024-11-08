@@ -1,39 +1,35 @@
 package com.vox.proyecto.controller;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.vox.proyecto.modelo.Publicacion;
 import com.vox.proyecto.repository.PublicacionRepository;
 
-import java.util.List;
-
-@RestController
-@RequestMapping("/publicaciones")
+@Controller
 public class PublicacionController {
 
     @Autowired
     private PublicacionRepository publicacionRepository;
 
-    // Método para crear una nueva publicación
-    @PostMapping
-    public ResponseEntity<Void> crearPublicacion(@RequestBody Publicacion publicacion) {
-        // Aquí puedes establecer el usuario actual según tu lógica de autenticación
-        Usuario usuarioActual = ...; // Lógica para obtener el usuario actual
+    @DeleteMapping("/eliminarPublicacion/{id}")
+    @ResponseBody
+    public Map<String, Boolean> eliminarPublicacion(@PathVariable Long id) {
+        Map<String, Boolean> response = new HashMap<>();
+        Optional<Publicacion> publicacionOpt = publicacionRepository.findById(id);
 
-        if (publicacion.getTexto().isEmpty()) {
-            return ResponseEntity.badRequest().build(); // Respuesta de error si el texto está vacío
-        }
-
-        // Establecer el usuario en la publicación
-        if (publicacion.getModo().equals("normal")) {
-            publicacion.setUsuario(usuarioActual);
+        if (publicacionOpt.isPresent()) {
+            Publicacion publicacion = publicacionOpt.get();
+            if (publicacion.isDeletable()) { // Método que verifica si puede ser eliminada
+                publicacionRepository.delete(publicacion);
+                response.put("success", true);
+            } else {
+                response.put("success", false); // No se puede eliminar
+            }
         } else {
-            publicacion.setUsuario(null); // Para publicaciones anónimas
+            response.put("success", false); // Publicación no encontrada
         }
-
-        publicacionRepository.save(publicacion);
-        return ResponseEntity.ok().build(); // Respuesta exitosa
+        return response;
     }
 }
