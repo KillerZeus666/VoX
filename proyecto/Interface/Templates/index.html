@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inicio de Sesión y Registro</title>
+  <link rel="stylesheet" href="assets/css/estilos.css">
+</head>
+<body>
+  <main>
+    <div class="contenedor__todo">
+      
+      <!-- Sección de Inicio de Sesión -->
+      <div class="contenedor__login">
+        <form id="loginForm" class="formulario__login">
+          <h2>Iniciar Sesión</h2>
+          <input type="text" id="loginEmail" placeholder="Correo Electrónico" required>
+          <input type="password" id="loginPassword" placeholder="Contraseña" required>
+          <button type="button" onclick="login()">Entrar</button>
+        </form>
+      </div>
+
+      <!-- Separador para el formulario de Registro -->
+      <div class="separador"></div>
+
+      <!-- Sección de Registro -->
+      <div class="contenedor__register">
+        <form id="registerForm" class="formulario__register">
+          <h2>Registrarse</h2>
+          <input type="text" id="registerName" placeholder="Nombre Completo" required>
+          <input type="text" id="registerEmail" placeholder="Correo Electrónico" required>
+          <input type="text" id="registerUsername" placeholder="Usuario" required>
+          <input type="password" id="registerPassword" placeholder="Contraseña" required>
+          <button type="button" onclick="register()">Registrarse</button>
+        </form>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="assets/js/login.js"></script>
+  <script src="assets/js/register.js"></script>
+</body>
+</html>

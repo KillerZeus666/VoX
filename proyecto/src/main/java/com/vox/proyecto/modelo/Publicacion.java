@@ -60,4 +60,12 @@ public class Publicacion {
     public long contarLikes() {
         return likes.size();
     }
+
+    private boolean compartida;
+    private boolean enCampaña;
+
+    // Método para verificar si la publicación es eliminable
+    public boolean isDeletable() {
+        return !compartida && !enCampaña;
+    }
 }
