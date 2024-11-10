@@ -2,21 +2,17 @@ package com.vox.proyecto.modelo;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import javax.persistence.OneToMany;
+
+import lombok.Data;
 
 @Entity
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter 
-@ToString
+@Data
 public class Usuario {
 
     @Id
@@ -31,15 +27,31 @@ public class Usuario {
     private String semestre;
     private String biografia;
     private String email;
+    private boolean notificacionesActivas;
 
-    
-    private List<Like> likes = new ArrayList<>(); 
-    private List<Publicacion> publicaciones = new ArrayList<>(); 
-    private List<Seguimiento> seguidores = new ArrayList<>();  
-    private List<Seguimiento> seguidos = new ArrayList<>(); 
+    /* Actualización para Referencia */
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
+    private List<Referencia> referencias;
 
-                // Constructor adicional para registrar usuario
-        public Usuario(String nombre, String username, String password, int edad, String carrera, String semestre, String biografia, String email) {
+    @OneToMany(mappedBy = "autor")
+    private List<Publicacion> publicaciones = new ArrayList<>();
+
+    @OneToMany(mappedBy = "usuario")
+    private List<Like> likes = new ArrayList<>();
+
+    @OneToMany
+    private List<Seguimiento> seguidores = new ArrayList<>();
+
+    @OneToMany
+    private List<Seguimiento> seguidos = new ArrayList<>();
+
+    // Constructor vacío
+    public Usuario() {
+    }
+
+    // Constructor completo para inicializar todos los atributos
+    public Usuario(String nombre, String username, String password, int edad, String carrera, String semestre,
+                   String biografia, String email, boolean notificacionesActivas) {
         this.nombre = nombre;
         this.username = username;
         this.password = password;
@@ -48,17 +60,24 @@ public class Usuario {
         this.semestre = semestre;
         this.biografia = biografia;
         this.email = email;
-        }
+        this.notificacionesActivas = notificacionesActivas;
+    }
 
     public void seguir(Usuario usuario) {
-        Seguimiento seguimiento = new Seguimiento(this.idUsuario, usuario.getIdUsuario());
-        this.seguidos.add(seguimiento);
-        usuario.getSeguidores().add(seguimiento);
+        if (!this.equals(usuario)) {
+            Seguimiento seguimiento = new Seguimiento(this.getIdUsuario(), usuario.getIdUsuario());
+            seguimiento.setSeguidor(this);
+            seguimiento.setSeguido(usuario);
+            this.seguidos.add(seguimiento);
+            usuario.getSeguidores().add(seguimiento);
+        }
     }
 
     public void dejarSeguir(Usuario usuario) {
-        this.seguidos.removeIf(s -> s.getIdSeguido().equals(usuario.getIdUsuario()));
-        usuario.getSeguidores().removeIf(s -> s.getIdSeguidor().equals(this.idUsuario));
+        if (usuario != null && usuario.getIdUsuario() != null) {
+            seguidos.removeIf(s -> s.getSeguido() != null && s.getSeguido().getIdUsuario() != null && s.getSeguido().getIdUsuario().equals(usuario.getIdUsuario()));
+            usuario.getSeguidores().removeIf(s -> s.getSeguidor() != null && s.getSeguidor().getIdUsuario() != null && s.getSeguidor().getIdUsuario().equals(this.getIdUsuario()));
+        }
     }
 
     public List<Usuario> verSeguidores() {
@@ -83,19 +102,26 @@ public class Usuario {
                 .orElse(null);
     }
 
-    public void darLike(Publicacion publicacion, Boolean anonimo) {
-        Like nuevoLike = new Like(this.idUsuario, publicacion.getIdPub(), anonimo);
-        this.likes.add(nuevoLike);
-        publicacion.agregarLike(nuevoLike);
+    public void darLike(Publicacion publicacion, boolean anonimo) {
+        Like like = new Like(this, publicacion, anonimo);
+        publicacion.agregarLike(like);
+    }
+
+    public void darLikePublico(Publicacion publicacion) {
+        darLike(publicacion, false);
+    }
+
+    public void darLikeAnonimo(Publicacion publicacion) {
+        darLike(publicacion, true);
     }
 
     public void quitarLike(Publicacion publicacion) {
-        publicacion.getLikes().removeIf(l -> l.getIdUser().equals(this.idUsuario));
-        this.likes.removeIf(l -> l.getIdPub().equals(publicacion.getIdPub()));
+        publicacion.getLikes().removeIf(l -> l.getUsuario().equals(this));
+        this.likes.removeIf(l -> l.getPublicacion().equals(publicacion));
     }
 
     public Publicacion hacerPublicacion(String descripcion, Boolean anonimo) {
-        Publicacion nuevaPub = new Publicacion(this.idUsuario, descripcion, anonimo);
+        Publicacion nuevaPub = new Publicacion(this, descripcion, anonimo);
         this.publicaciones.add(nuevaPub);
         return nuevaPub;
     }
@@ -115,4 +141,25 @@ public class Usuario {
             this.username = nuevoUsername;
         }
     }
+
+    public boolean eliminarPublicacion(Publicacion pubAEliminar) {
+        return this.publicaciones.remove(pubAEliminar);
+    }
+
+    public void hacerReferenciacion(String usuarioRef, Publicacion publicacion, String comentario, Boolean anonimo) {
+        if (publicacion == null || publicacion.getAutor().equals(this)) {
+            throw new IllegalArgumentException("No se puede hacer una referencia a esta publicación.");
+        }
+        Referencia nuevaReferencia = new Referencia(this, publicacion, comentario, usuarioRef, anonimo);
+        if (this.referencias == null) {
+            this.referencias = new ArrayList<>();
+        }
+        this.referencias.add(nuevaReferencia);
+        if (publicacion.getReferencias() == null) {
+            publicacion.setReferencias(new ArrayList<>());
+        }
+        publicacion.getReferencias().add(nuevaReferencia);
+    }
+
+    
 }
