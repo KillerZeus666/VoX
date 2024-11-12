@@ -250,5 +250,13 @@ public class Publicacion {
             System.out.println("No se encontró contenido multimedia con el ID especificado.");
         }
     }
+
+    private boolean compartida;
+    private boolean enCampaña;
+
+    // Método para verificar si la publicación es eliminable
+    public boolean isDeletable() {
+        return !compartida && !enCampaña;
+    }
         
 }

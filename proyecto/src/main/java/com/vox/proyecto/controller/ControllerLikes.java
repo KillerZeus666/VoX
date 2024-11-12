@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vox.proyecto.modelo.Like;
 import com.vox.proyecto.modelo.Publicacion;
+import com.vox.proyecto.modelo.Usuario;
 import com.vox.proyecto.repository.LikeRepository;
 import com.vox.proyecto.repository.PublicacionRepository;
+import com.vox.proyecto.repository.UsuarioRepository;
 
 @RestController
 @RequestMapping("/likes")
@@ -26,21 +28,32 @@ public class ControllerLikes {
     private PublicacionRepository publicacionRepository;
 
     // Método para dar un "Like" a una publicación
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+    
     @PostMapping("/darLike")
     public ResponseEntity<Like> darLike(@RequestBody Publicacion publicacion, @RequestParam Long idUser) {
         // Verifica si la publicación existe
         if (!publicacionRepository.existsById(publicacion.getIdPub())) {
             return ResponseEntity.notFound().build();
         }
-
-        // Crea un nuevo Like
+    
+        // Busca el usuario con el id proporcionado
+        Usuario usuario = usuarioRepository.findById(idUser).orElse(null);
+        if (usuario == null) {
+            return ResponseEntity.badRequest().build();  // Devuelve un error si el usuario no existe
+        }
+    
+        // Crea un nuevo Like y asigna la publicación y el usuario
         Like nuevoLike = new Like();
         nuevoLike.setPublicacion(publicacion);
-        nuevoLike.setIdUser(idUser);
-
+        nuevoLike.setUsuario(usuario);  // Asigna el usuario completo al Like
+    
         // Guarda el like y retorna la respuesta
         return ResponseEntity.ok(likeRepository.save(nuevoLike));
     }
+    
+
 
     // Método para quitar un "Like" de una publicación
     @DeleteMapping("/quitarLike")
